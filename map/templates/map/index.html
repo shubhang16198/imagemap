@@ -1,7 +1,180 @@
-<iframe
-  width="600"
-  height="450"
-  frameborder="0" style="border:0"
-  src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBbzvW8nJ5WxvkNyLGlyagAMoRLpu09Y44
-    &q=Space+Needle,Seattle+WA" allowfullscreen>
-</iframe>
+<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
+<style>
+    body {
+        background-color: #e5e5e5;
+        padding: 0px;
+        margin: 0px;
+    }
+    #map {
+        height: 70%;
+        width: 100%;
+       }
+    #loader {
+        width: 100%;
+        background-color: grey;
+    }
+    #bar{
+        width:1%;
+        height:30px;
+        background-color: limegreen;
+    }
+    .input-file-container {
+  position: relative;
+  width: 225px;
+}
+.js .input-file-trigger {
+  display: block;
+  padding: 14px 45px;
+  background: #39D2B4;
+  color: #000;
+
+  transition: all .4s;
+  cursor: pointer;
+}
+.js .input-file {
+  position: absolute;
+  top: 0; left: 0;
+  width: 225px;
+  opacity: 0;
+  padding: 14px 0;
+  cursor: pointer;
+}
+.js .input-file:hover + .input-file-trigger,
+.js .input-file:focus + .input-file-trigger,
+.js .input-file-trigger:hover,rang de
+.js .input-file-trigger:focus {
+    -webkit-border-radius:10px;
+    -moz-border-radius:10px;
+    border-radius:10px;
+  background: #121313;
+  color: #39D2B4;
+}
+
+.input-file-trigger {
+    font-family: 'Titillium Web', sans-serif;
+    font-size: 18px;
+}
+
+.file-return {
+  margin: 0;
+}
+.file-return:not(:empty) {
+  margin: 1em 0;
+}
+.js .file-return {
+  font-style: italic;
+  font-size: .9em;
+  font-weight: bold;
+}
+.js .file-return:not(:empty):before {
+  content: "Selected file: ";
+  font-style: normal;
+  font-weight: normal;
+}
+
+#submitbutton {
+    -webkit-transition: all 0.3s ease;
+}
+#submitbutton:hover{
+    -webkit-transition: all 0.3s ease;
+    background-color: #e5e5e5 !important;
+    color:black !important;
+}
+</style>
+<div id="loader" style="z-index: 100;">
+    <div id="bar"></div>
+</div>
+<div id="map"></div>
+
+<br><br>
+<div align="center">
+    <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+        <div class="input-file-container">
+    <input class="input-file" id="images" name="images" type="file" multiple>
+    <label tabindex="0" for="my-file" class="input-file-trigger"> Select a file...</label>
+  </div>
+          <p class="file-return"></p>
+
+    <!--<input type="file" name="images" id="images" multiple >
+        <label for="images">Choose 1 or more images</label>-->
+    </form>
+    <button id="submitbutton" onclick="showloader();" style="background-color: black; padding: 10px;color: #fff;cursor: pointer; -webkit-border-radius: 10px;-moz-border-radius: 10px;border-radius: 10px;">Upload</button>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+document.querySelector("html").classList.add('js');
+var fileInput  = document.querySelector( ".input-file" ),
+    button     = document.querySelector( ".input-file-trigger" ),
+    the_return = document.querySelector(".file-return");
+
+button.addEventListener( "click", function( event ) {
+   fileInput.focus();
+   return false;
+});
+
+fileInput.addEventListener( "change", function( event ) {
+    if (this.files.length > 1) {
+        the_return.innerHTML = this.files.length + " files added.";
+    }
+    else {
+        the_return.innerHTML = this.files[0].name;
+    }
+});
+    function sleep(miliseconds) {
+                var currentTime = new Date().getTime();
+                while (currentTime + miliseconds >= new Date().getTime()) {
+                }
+            }
+    function showloader() {
+
+        var elem = document.getElementById("bar");
+        if (document.forms[0]["images"].files.length == 0) {
+            alert("Select 1 or more images!");return false;
+        }
+        var width = 1;
+        var id = setInterval(frame, 10);
+        function frame() {
+            if (width >= 100) {
+                clearInterval(id);
+
+                document.forms[0].submit();
+            }
+            else {
+                width ++;
+                elem.style.width = width + '%';
+            }
+        }
+    }
+      function initMap() {
+        var IIITD = {lat: 28.547357, lng: 77.273180};
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 4,
+          center: IIITD
+        });
+        var bounds = new google.maps.LatLngBounds();
+          {% if listoflatlong %}
+              {% for lat, long in listoflatlong %}
+                  new google.maps.Marker({
+                      position: {lat: {{ lat }} , lng: {{ long }} },
+                      map: map
+                  });
+                  bounds.extend({lat: {{ lat }} , lng: {{ long }} });
+              {% endfor %}
+              {% if listoflatlong|length > 1 %}
+                  map.fitBounds(bounds);
+              {% elif listoflatlong|length == 1 %}
+                  {% with latlong1=listoflatlong.0 %}
+                    map.center = new google.maps.LatLng( {{ latlong1.0 }}, {{ latlong1.1 }} );
+                    map.zoom = 7;
+                  {% endwith %}
+              {% else %}
+                  map.center = new google.maps.LatLng(28.547357, 77.273180);
+                  map.zoom = 4;
+              {% endif %}
+          {% endif %}
+      }
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgwSbYvwP4jHp__X9-cnrG1KjcmNF4zHo&callback=initMap"></script>
