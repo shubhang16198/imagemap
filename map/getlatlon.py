@@ -9,7 +9,10 @@ def get_lat_lon(image):
     lat = None
     lon = None
     exif_data = {}
-    info = image._getexif()
+    try:
+        info = image._getexif()
+    except:
+        return None
     if info:
         for tag, value in info.items():
             decoded = TAGS.get(tag, tag)

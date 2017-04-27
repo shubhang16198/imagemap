@@ -4,6 +4,7 @@ from django.core.files.storage import FileSystemStorage
 import os
 from PIL import Image
 from . import getlatlon
+from urllib2 import unquote
 
 def index(request):
     for file in os.listdir(settings.MEDIA_ROOT):
@@ -15,10 +16,12 @@ def index(request):
             fs = FileSystemStorage()
             filename = fs.save(file.name, file)
             uploaded_file_url = fs.url(filename)
-            imageurl = settings.BASE_DIR + uploaded_file_url
+            imageurl = settings.BASE_DIR + unquote(uploaded_file_url)
             print "imageurl : ", imageurl
             image = Image.open(imageurl)
-            listoflatlong.append(getlatlon.get_lat_lon(image))
+            res = getlatlon.get_lat_lon(image)
+            if res != None:
+                listoflatlong.append(res)
         return render(request, 'map/index.html', {'listoflatlong' : listoflatlong})
     return render(request, 'map/index.html')
 

@@ -129,7 +129,6 @@ fileInput.addEventListener( "change", function( event ) {
                 }
             }
     function showloader() {
-
         var elem = document.getElementById("bar");
         if (document.forms[0]["images"].files.length == 0) {
             alert("Select 1 or more images!");return false;
@@ -148,33 +147,75 @@ fileInput.addEventListener( "change", function( event ) {
             }
         }
     }
+</script>
+
+<script>
+      var listoflatslongs = [];
+      var titles = [];
+      var markers = [];
+      var infowindows = [];
+      var bounds;
+      var map;
       function initMap() {
         var IIITD = {lat: 28.547357, lng: 77.273180};
-        var map = new google.maps.Map(document.getElementById('map'), {
+        bounds =  new google.maps.LatLngBounds()
+        map = new google.maps.Map(document.getElementById('map'), {
           zoom: 4,
           center: IIITD
         });
-        var bounds = new google.maps.LatLngBounds();
-          {% if listoflatlong %}
+        {% if listoflatlong %}
               {% for lat, long in listoflatlong %}
-                  new google.maps.Marker({
-                      position: {lat: {{ lat }} , lng: {{ long }} },
-                      map: map
-                  });
+                  listoflatslongs.push({lat: {{ lat }} , lng: {{ long }} });
+                  infowindows.push(new google.maps.InfoWindow());
                   bounds.extend({lat: {{ lat }} , lng: {{ long }} });
               {% endfor %}
-              {% if listoflatlong|length > 1 %}
-                  map.fitBounds(bounds);
-              {% elif listoflatlong|length == 1 %}
-                  {% with latlong1=listoflatlong.0 %}
-                    map.center = new google.maps.LatLng( {{ latlong1.0 }}, {{ latlong1.1 }} );
-                    map.zoom = 7;
-                  {% endwith %}
-              {% else %}
-                  map.center = new google.maps.LatLng(28.547357, 77.273180);
-                  map.zoom = 4;
-              {% endif %}
-          {% endif %}
+        {% endif %}
+        if(listoflatslongs.length > 1) {
+            map.fitBounds(bounds);
+            console.log(bounds);
+        }
+        if(listoflatslongs.length == 0) {
+            map.center = new google.maps.LatLng(28.547357, 77.273180);
+            map.zoom = 4;
+        }
+        if (listoflatslongs.length == 1) {
+            map.center = new google.maps.LatLng(listoflatslongs[0].lat, listoflatslongs[0].lng);
+            map.zoom = 5;
+        }
+        for (var i = 0; i < listoflatslongs.length; ++i) {
+            addMarkerWithTimeout(listoflatslongs[i], titles[i], i * 200);
+            findAddress(i);
+        }
       }
+
+      function addMarkerWithTimeout(position, title, timeout) {
+        window.setTimeout(function() {
+          markers.push(new google.maps.Marker({
+            position: position,
+            map: map,
+            animation: google.maps.Animation.DROP
+          }));
+        }, timeout);
+      }
+
+      function findAddress(i) {
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode({latLng: listoflatslongs[i]}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+            if (results[0]) {
+              infowindows[i].setContent(results[0].formatted_address);
+              infowindows[i].setPosition(listoflatslongs[i]);
+              infowindows[i].open(map);
+            }
+          }
+        });
+      }
+
+
+
 </script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgwSbYvwP4jHp__X9-cnrG1KjcmNF4zHo&callback=initMap"></script>
+
+
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgwSbYvwP4jHp__X9-cnrG1KjcmNF4zHo&callback=initMap">
+    </script>
