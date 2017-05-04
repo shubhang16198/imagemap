@@ -6,7 +6,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^map/', include('map.urls')),
+    url(r'^$', include('map.urls')),
 ]
 
 if settings.DEBUG:
